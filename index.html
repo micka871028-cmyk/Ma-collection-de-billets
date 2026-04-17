@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='65' x='0' y='17' rx='8' fill='%234caf6e'/><rect width='86' height='51' x='7' y='24' rx='5' fill='%23388e3c'/><ellipse cx='50' cy='50' rx='16' ry='12' fill='%2381c784'/><rect width='8' height='30' x='10' y='35' rx='3' fill='%2366bb6a'/><rect width='8' height='30' x='82' y='35' rx='3' fill='%2366bb6a'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b10;
+    --surface: rgba(15, 20, 32, 0.82);
+    --surface2: rgba(25, 32, 50, 0.85);
+    --border: rgba(255,255,255,0.09);
+    --border-strong: rgba(255,255,255,0.18);
+    --accent: #e8c96d;
+    --accent2: #7eb8f7;
+    --text: #e8eaf0;
+    --text-muted: #8a96a8;
+    --checked-bg: rgba(15, 45, 25, 0.9);
+    --checked-border: #4caf6e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    background-color: var(--bg);
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0;
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/2/24/International_Flag_of_Planet_Earth_Budassi_version.svg');
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+    opacity: 0.68; pointer-events: none;
+  }
+
+  .bg-overlay {
+    position: fixed; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse at center, rgba(8,11,16,0.55) 0%, rgba(8,11,16,0.88) 100%);
+    pointer-events: none;
+  }
+
+  header, .stats-bar, .progress-wrap, .controls, .search-wrap, .add-country-wrap, main, footer {
+    position: relative; z-index: 1; width: 100%; max-width: 100%;
+  }
+
+  header {
+    text-align: center; padding: 55px 20px 38px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(5,8,14,0.95) 0%, rgba(8,11,16,0.6) 100%);
+    backdrop-filter: blur(4px);
+  }
+
+  header::before {
+    content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 420px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.9rem, 4.5vw, 3.2rem);
+    font-weight: 900; color: var(--text);
+    text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    margin-top: 10px; color: var(--text-muted);
+    font-size: 0.82rem; letter-spacing: 2.5px; text-transform: uppercase;
+  }
+
+  /* BADGE MODE */
+  .mode-badge {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 14px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 1px solid var(--border-strong);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mode-badge.owner {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* MODAL MOT DE PASSE */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(6px);
+    align-items: center; justify-content: center;
+  }
+
+  .modal-overlay.visible { display: flex; }
+
+  .modal-box {
+    background: #151820;
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    padding: 32px 28px;
+    width: 100%; max-width: 340px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+
+  .modal-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem; margin-bottom: 8px; color: var(--accent);
+  }
+
+  .modal-box p { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 20px; }
+
+  .modal-box input {
+    width: 100%; background: rgba(8,11,16,0.8);
+    border: 1px solid var(--border-strong);
+    color: var(--text); padding: 10px 14px;
+    border-radius: 6px; font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; outline: none; margin-bottom: 12px;
+    text-align: center; letter-spacing: 2px;
+  }
+
+  .modal-box input:focus { border-color: var(--accent2); }
+
+  .modal-buttons { display: flex; gap: 10px; }
+
+  .modal-btn {
+    flex: 1; padding: 10px; border-radius: 6px;
+    border: 1px solid var(--border-strong);
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem; font-weight: 500; transition: all 0.2s;
+  }
+
+  .modal-btn.confirm {
+    background: rgba(20,40,70,0.8);
+    color: var(--accent2); border-color: var(--accent2);
+  }
+
+  .modal-btn.confirm:hover { background: var(--accent2); color: #080b10; }
+
+  .modal-btn.cancel {
+    background: transparent; color: var(--text-muted);
+  }
+
+  .modal-btn.cancel:hover { border-color: #f87171; color: #f87171; }
+
+  .modal-error {
+    font-size: 0.75rem; color: #f87171;
+    margin-bottom: 10px; display: none;
+  }
+
+  /* STATS */
+  .stats-bar {
+    display: flex; justify-content: center; gap: 36px;
+    padding: 18px 20px; border-bottom: 1px solid var(--border);
+    background: var(--surface); backdrop-filter: blur(12px); flex-wrap: wrap;
+  }
+
+  .stat { text-align: center; }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem; font-weight: 700; color: var(--accent);
+  }
+
+  .stat-num.green { color: #4caf6e; }
+  .stat-num.red   { color: #f87171; }
+
+  .stat-label {
+    font-size: 0.7rem; color: var(--text-muted);
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+
+  .progress-wrap {
+    padding: 12px 40px; background: var(--surface);
+    backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
+  }
+
+  .progress-bg {
+    background: rgba(255,255,255,0.07);
+    border-radius: 99px; height: 7px; overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf6e, #7eb8f7);
+    border-radius: 99px; transition: width 0.4s ease; width: 0%;
+  }
+
+  .controls {
+    display: flex; gap: 10px; justify-content: center;
+    padding: 18px 20px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    background: rgba(8,11,16,0.55); backdrop-filter: blur(8px);
+  }
+
+  .btn {
+    background: rgba(25,32,50,0.7); color: var(--text);
+    border: 1px solid var(--border-strong);
+    padding: 9px 18px; border-radius: 6px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+    transition: all 0.2s; backdrop-filter: blur(4px);
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.active { border-color: var(--accent2); color: var(--accent2); background: rgba(20,40,70,0.8); }
+  .btn.danger:hover { border-color: #f87171; color: #f87171; }
+
+  .search-wrap {
+    display: flex; justify-content: center;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    background: rgba(8,11,16,0.45); backdrop-filter: blur(8px);
+  }
+
+  .search-wrap input {
+    background: rgba(25,32,50,0.75); border: 1px solid var(--border-strong);
+    color: var(--text); padding: 9px 18px; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+    width: 100%; max-width: 380px; outline: none;
+    transition: border-color 0.2s; backdrop-filter: blur(4px);
+  }
+
+  .search-wrap input:focus { border-color: var(--accent2); }
+  .search-wrap input::placeholder { color: var(--text-muted); }
+
+  /* FORMULAIRE AJOUT — visible uniquement en mode propriétaire */
+  .add-country-wrap {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    background: rgba(8,11,16,0.55); backdrop-filter: blur(8px);
+    display: none; justify-content: center;
+  }
+
+  .add-country-wrap.owner-only { display: flex; }
+
+  .add-country-box {
+    background: rgba(25,32,50,0.7); border: 1px solid var(--border-strong);
+    border-radius: 10px; padding: 16px 20px;
+    width: 100%; max-width: 750px;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+  }
+
+  .add-country-box label {
+    font-size: 0.72rem; color: var(--text-muted);
+    letter-spacing: 1px; text-transform: uppercase;
+    display: flex; flex-direction: column; gap: 5px;
+    flex: 1; min-width: 120px;
+  }
+
+  .add-country-box input,
+  .add-country-box select {
+    background: rgba(8,11,16,0.7); border: 1px solid var(--border-strong);
+    color: var(--text); padding: 8px 12px; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+    outline: none; transition: border-color 0.2s; width: 100%;
+  }
+
+  .add-country-box input:focus,
+  .add-country-box select:focus { border-color: var(--accent2); }
+  .add-country-box select option { background: #1c2030; color: var(--text); }
+
+  .btn-add {
+    background: rgba(20,40,70,0.8); color: var(--accent2);
+    border: 1px solid var(--accent2);
+    padding: 9px 20px; border-radius: 6px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+    transition: all 0.2s; white-space: nowrap; align-self: flex-end;
+  }
+
+  .btn-add:hover { background: var(--accent2); color: #080b10; }
+
+  /* MAIN */
+  main { padding: 0 20px 60px; max-width: 1500px; margin: 0 auto; }
+
+  .continent-section { margin-bottom: 50px; }
+
+  .continent-header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 22px 0 18px; position: sticky; top: 0;
+    background: rgba(8,11,16,0.88); backdrop-filter: blur(16px);
+    z-index: 10; border-bottom: 1px solid var(--border); margin-bottom: 22px;
+  }
+
+  .continent-header::before {
+    content: ''; display: block;
+    width: 4px; height: 28px; border-radius: 2px; flex-shrink: 0;
+  }
+
+  .continent-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700;
+    text-shadow: 0 1px 10px rgba(0,0,0,0.6);
+  }
+
+  .continent-count {
+    font-size: 0.74rem; color: var(--text-muted);
+    letter-spacing: 1px; text-transform: uppercase; margin-left: auto;
+  }
+
+  .continent-progress-wrap {
+    width: 100%; padding: 10px 0 10px;
+    margin-bottom: 10px;
+  }
+
+  .continent-progress-bg {
+    background: rgba(255,255,255,0.07);
+    border-radius: 99px; height: 5px; overflow: hidden;
+  }
+
+  .continent-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf6e, #7eb8f7);
+    border-radius: 99px; transition: width 0.4s ease; width: 0%;
+  }
+
+  .europe .continent-header::before       { background: #7eb8f7; }
+  .europe .continent-header h2            { color: #7eb8f7; }
+  .afrique .continent-header::before      { background: #f6a84b; }
+  .afrique .continent-header h2           { color: #f6a84b; }
+  .asie .continent-header::before         { background: #e87070; }
+  .asie .continent-header h2              { color: #e87070; }
+  .amerique-nord .continent-header::before{ background: #7de4c0; }
+  .amerique-nord .continent-header h2     { color: #7de4c0; }
+  .amerique-sud .continent-header::before { background: #b07ef6; }
+  .amerique-sud .continent-header h2      { color: #b07ef6; }
+  .oceanie .continent-header::before      { background: #e8c96d; }
+  .oceanie .continent-header h2           { color: #e8c96d; }
+
+ .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 11px;
+  }
+
+  .country-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 13px 10px 11px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    transition: all 0.2s ease; backdrop-filter: blur(8px); position: relative;
+  }
+
+  .country-card:hover {
+    border-color: var(--border-strong); transform: translateY(-2px);
+    background: var(--surface2); box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .country-card.owned { background: var(--checked-bg); border-color: var(--checked-border); }
+  .country-card.owned .country-name { color: #4caf6e; font-weight: 600; }
+
+  .flag-img {
+    width: 64px; height: 43px; object-fit: cover;
+    border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+  }
+
+  .country-name {
+    font-size: 0.7rem; text-align: center; color: var(--text-muted);
+    font-weight: 500; line-height: 1.3; word-break: break-word;
+  }
+
+  .card-check-row {
+    display: flex; align-items: center; gap: 7px;
+    width: 100%; justify-content: center;
+    padding: 3px 0; border-radius: 5px; transition: background 0.15s;
+  }
+
+  .card-check-row.clickable { cursor: pointer; }
+  .card-check-row.clickable:hover { background: rgba(255,255,255,0.05); }
+
+  .checkbox-wrap {
+    width: 16px; height: 16px; border: 2px solid var(--border-strong);
+    border-radius: 3px; background: rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.15s;
+  }
+
+  .country-card.owned .checkbox-wrap { background: var(--checked-border); border-color: var(--checked-border); }
+
+  .checkbox-wrap::after {
+    content: ''; display: none;
+    width: 4px; height: 8px;
+    border: 2px solid white; border-top: none; border-left: none;
+    transform: rotate(45deg) translate(-1px,-1px);
+  }
+
+  .country-card.owned .checkbox-wrap::after { display: block; }
+
+  .check-label { font-size: 0.68rem; color: var(--text-muted); }
+  .country-card.owned .check-label { color: #4caf6e; }
+
+  .country-currency {
+    font-size: 0.75rem; text-align: center;
+    color: var(--accent); opacity: 0.8;
+    font-style: italic; line-height: 1.3;
+    word-break: break-word;
+  }
+
+  .badge-missing {
+    position: absolute; top: 7px; left: 7px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #f87171; opacity: 0.6;
+  }
+
+  .country-card.owned .badge-missing { display: none; }
+
+  .btn-delete {
+    position: absolute; top: 5px; right: 5px;
+    background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3);
+    color: #f87171; border-radius: 4px;
+    width: 20px; height: 20px; font-size: 0.75rem; line-height: 1;
+    cursor: pointer; display: none; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s, background 0.2s; z-index: 2;
+  }
+
+  /* Bouton supprimer visible uniquement en mode propriétaire */
+  body.is-owner .btn-delete { display: flex; }
+  body.is-owner .country-card:hover .btn-delete { opacity: 1; }
+  .btn-delete:hover { background: rgba(248,113,113,0.4); }
+
+  /* Indicateur de chargement */
+  .loading-bar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    z-index: 200; transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s ease; display: none;
+  }
+
+  .loading-bar.visible { display: block; transform: scaleX(1); }
+
+  .hidden { display: none !important; }
+
+  footer {
+    position: relative; z-index: 1; text-align: center; padding: 26px;
+    color: var(--text-muted); font-size: 0.76rem;
+    border-top: 1px solid var(--border);
+    background: rgba(5,8,14,0.8); backdrop-filter: blur(8px); letter-spacing: 1px;
+  }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+    .continent-header { position: static; }
+    .flag-img { width: 50px; height: 34px; }
+    .add-country-box label { min-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loading-bar"></div>
+<div class="bg-layer"></div>
+<div class="bg-overlay"></div>
+
+<!-- MODAL MOT DE PASSE -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <h3>🔐 Accès propriétaire</h3>
+    <p>Entrez le mot de passe pour activer le mode édition</p>
+    <input type="password" id="modal-password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter') confirmPassword()">
+    <div class="modal-error" id="modal-error">Mot de passe incorrect</div>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="closeModal()">Annuler</button>
+      <button class="modal-btn confirm" onclick="confirmPassword()">Valider</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <h1>Ma Collection de <span>Billets</span></h1>
+  <p class="subtitle">Gestionnaire de collection · Sauvegarde automatique</p>
+  <span class="mode-badge" id="mode-badge" onclick="handleModeBadgeClick()">👁 Lecture seule</span>
+</header>
+
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num green" id="owned-count">0</div>
+    <div class="stat-label">Possédés</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num red" id="missing-count">0</div>
+    <div class="stat-label">Manquants</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="total-count">0</div>
+    <div class="stat-label">Total pays</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="percent">0%</div>
+    <div class="stat-label">Complétion</div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bg"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<div class="controls">
+  <button class="btn active" id="btn-all"     onclick="setFilter('all')">Tous</button>
+  <button class="btn"        id="btn-owned"   onclick="setFilter('owned')">✅ Possédés</button>
+  <button class="btn"        id="btn-missing" onclick="setFilter('missing')">🔴 Manquants</button>
+  <button class="btn danger"                  onclick="resetAll()">Réinitialiser</button>
+</div>
+
+<div class="search-wrap">
+  <input type="text" id="search" placeholder="Rechercher un pays..." oninput="filterCountries(this.value)">
+</div>
+
+<!-- FORMULAIRE AJOUT PAYS — visible uniquement en mode propriétaire -->
+<div class="add-country-wrap" id="add-country-wrap">
+  <div class="add-country-box">
+    <label>
+      Nom du pays
+      <input type="text" id="add-name" placeholder="ex: Taïwan">
+    </label>
+    <label>
+      Code ISO (2 lettres)
+      <input type="text" id="add-iso" placeholder="ex: tw" maxlength="2">
+    </label>
+    <label>
+      Continent
+      <select id="add-continent">
+        <option value="europe">Europe</option>
+        <option value="afrique">Afrique</option>
+        <option value="asie">Asie</option>
+        <option value="amerique-nord">Amérique du Nord & Caraïbes</option>
+        <option value="amerique-sud">Amérique du Sud</option>
+        <option value="oceanie">Océanie</option>
+      </select>
+    </label>
+    <button class="btn-add" onclick="addCountry()">+ Ajouter</button>
+  </div>
+</div>
+
+<main id="main"></main>
+
+<footer>Drapeaux : flagcdn.com &nbsp;·&nbsp; Fond : Wikimedia Commons &nbsp;·&nbsp; Sauvegarde Firebase<br><span style="color: var(--accent); font-size: 0.8rem; letter-spacing: 1px;">Crédit : Bourcier Mickaël</span></footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+// ── FIREBASE CONFIG ──────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDgydH9hYKSgKFzEFp5lfLeUoJY5VZGT5g",
+  authDomain: "ma-collection-billets.firebaseapp.com",
+  projectId: "ma-collection-billets",
+  storageBucket: "ma-collection-billets.firebasestorage.app",
+  messagingSenderId: "221391022523",
+  appId: "1:221391022523:web:be345fbe3201a8ba02fc9e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── MOT DE PASSE PROPRIÉTAIRE ────────────────────────────────────
+const OWNER_PASSWORD = "Assignat";
+let isOwner = false;
+
+// ── DONNÉES PAR DÉFAUT ───────────────────────────────────────────
+const defaultContinents = [
+  { id:'europe', name:'Europe', pays:[
+    ['de','Allemagne','Deutsche Mark'],
+    ['al','Albanie','Lek'],
+    ['am','Arménie','Dram'],
+    ['at','Autriche','Schilling'],
+    ['az','Azerbaïdjan','Manat'],
+    ['by','Biélorussie','Rouble biélorusse'],
+    ['be','Belgique','Franc belge'],
+    ['ba','Bosnie-Herzégovine','Mark convertible'],
+    ['bg','Bulgarie','Lev'],
+    ['cy','Chypre','Livre chypriote'],
+    ['hr','Croatie','Kuna'],
+    ['dk','Danemark','Couronne danoise'],
+    ['es','Espagne','Peseta'],
+    ['ee','Estonie','Couronne estonienne'],
+    ['fi','Finlande','Mark finlandais'],
+    ['fr','France','Franc français'],
+    ['ge','Géorgie','Lari'],
+    ['gr','Grèce','Drachme'],
+    ['hu','Hongrie','Forint'],
+    ['ie','Irlande','Livre irlandaise'],
+    ['is','Islande','Couronne islandaise'],
+    ['it','Italie','Lire italienne'],
+    ['xk','Kosovo','Euro'],
+    ['lv','Lettonie','Lats'],
+    ['li','Liechtenstein','Franc suisse'],
+    ['lt','Lituanie','Litas'],
+    ['lu','Luxembourg','Franc luxembourgeois'],
+    ['mk','Macédoine du Nord','Denar'],
+    ['mt','Malte','Lire maltaise'],
+    ['md','Moldavie','Leu moldave'],
+    ['me','Monténégro','Euro'],
+    ['no','Norvège','Couronne norvégienne'],
+    ['nl','Pays-Bas','Florin'],
+    ['pl','Pologne','Zloty'],
+    ['pt','Portugal','Escudo'],
+    ['ro','Roumanie','Leu roumain'],
+    ['gb','Royaume-Uni','Livre sterling'],
+    ['ru','Russie','Rouble'],
+    ['sm','Saint-Marin','Lire de Saint-Marin'],
+    ['rs','Serbie','Dinar serbe'],
+    ['sk','Slovaquie','Couronne slovaque'],
+    ['si','Slovénie','Tolar'],
+    ['se','Suède','Couronne suédoise'],
+    ['ch','Suisse','Franc suisse'],
+    ['cz','Tchéquie','Couronne tchèque'],
+    ['ua','Ukraine','Hryvnia'],
+  ]},
+  { id:'afrique', name:'Afrique', pays:[
+    ['za','Afrique du Sud','Rand'],
+    ['dz','Algérie','Dinar algérien'],
+    ['ao','Angola','Kwanza'],
+    ['bj','Bénin','Franc CFA (BCEAO)'],
+    ['bw','Botswana','Pula'],
+    ['bf','Burkina Faso','Franc CFA (BCEAO)'],
+    ['bi','Burundi','Franc burundais'],
+    ['cv','Cap-Vert','Escudo cap-verdien'],
+    ['cm','Cameroun','Franc CFA (BEAC)'],
+    ['cf','Centrafrique','Franc CFA (BEAC)'],
+    ['km','Comores','Franc comorien'],
+    ['cg','Congo','Franc CFA (BEAC)'],
+    ['cd','Congo (RDC)','Franc congolais'],
+    ['ci',"Côte d'Ivoire",'Franc CFA (BCEAO)'],
+    ['dj','Djibouti','Franc djiboutien'],
+    ['eg','Égypte','Livre égyptienne'],
+    ['er','Érythrée','Nakfa'],
+    ['sz','Eswatini','Lilangeni'],
+    ['et','Éthiopie','Birr'],
+    ['ga','Gabon','Franc CFA (BEAC)'],
+    ['gm','Gambie','Dalasi'],
+    ['gh','Ghana','Cedi'],
+    ['gn','Guinée','Franc guinéen'],
+    ['gq','Guinée équatoriale','Franc CFA (BEAC)'],
+    ['gw','Guinée-Bissau','Franc CFA (BCEAO)'],
+    ['ke','Kenya','Shilling kenyan'],
+    ['ls','Lesotho','Loti'],
+    ['lr','Liberia','Dollar libérien'],
+    ['ly','Libye','Dinar libyen'],
+    ['mg','Madagascar','Ariary'],
+    ['mw','Malawi','Kwacha malawien'],
+    ['ml','Mali','Franc CFA (BCEAO)'],
+    ['ma','Maroc','Dirham marocain'],
+    ['mr','Mauritanie','Ouguiya'],
+    ['mu','Maurice','Roupie mauricienne'],
+    ['mz','Mozambique','Metical'],
+    ['na','Namibie','Dollar namibien'],
+    ['ne','Niger','Franc CFA (BCEAO)'],
+    ['ng','Nigéria','Naira'],
+    ['ug','Ouganda','Shilling ougandais'],
+    ['rw','Rwanda','Franc rwandais'],
+    ['st','São Tomé-et-Príncipe','Dobra'],
+    ['sn','Sénégal','Franc CFA (BCEAO)'],
+    ['sc','Seychelles','Roupie seychelloise'],
+    ['sl','Sierra Leone','Leone'],
+    ['so','Somalie','Shilling somalien'],
+    ['sd','Soudan','Livre soudanaise'],
+    ['ss','Soudan du Sud','Livre sud-soudanaise'],
+    ['tz','Tanzanie','Shilling tanzanien'],
+    ['td','Tchad','Franc CFA (BEAC)'],
+    ['tg','Togo','Franc CFA (BCEAO)'],
+    ['tn','Tunisie','Dinar tunisien'],
+    ['zm','Zambie','Kwacha zambien'],
+    ['zw','Zimbabwe','Dollar zimbabwéen'],
+  ]},
+  { id:'asie', name:'Asie', pays:[
+    ['af','Afghanistan','Afghani'],
+    ['sa','Arabie Saoudite','Riyal saoudien'],
+    ['am','Arménie','Dram'],
+    ['az','Azerbaïdjan','Manat'],
+    ['bh','Bahreïn','Dinar bahreïni'],
+    ['bd','Bangladesh','Taka'],
+    ['bt','Bhoutan','Ngultrum'],
+    ['mm','Myanmar','Kyat'],
+    ['bn','Brunei','Dollar de Brunei'],
+    ['kh','Cambodge','Riel'],
+    ['cn','Chine','Yuan renminbi'],
+    ['kp','Corée du Nord','Won nord-coréen'],
+    ['kr','Corée du Sud','Won sud-coréen'],
+    ['ae','Émirats arabes unis','Dirham des EAU'],
+    ['ph','Philippines','Peso philippin'],
+    ['ge','Géorgie','Lari'],
+    ['in','Inde','Roupie indienne'],
+    ['id','Indonésie','Roupiah'],
+    ['iq','Irak','Dinar irakien'],
+    ['ir','Iran','Rial iranien'],
+    ['il','Israël','Shekel'],
+    ['jp','Japon','Yen'],
+    ['jo','Jordanie','Dinar jordanien'],
+    ['kz','Kazakhstan','Tenge'],
+    ['kg','Kirghizistan','Som'],
+    ['kw','Koweït','Dinar koweïtien'],
+    ['la','Laos','Kip'],
+    ['lb','Liban','Livre libanaise'],
+    ['my','Malaisie','Ringgit'],
+    ['mv','Maldives','Rufiyaa'],
+    ['mn','Mongolie','Tögrög'],
+    ['np','Népal','Roupie népalaise'],
+    ['om','Oman','Rial omanais'],
+    ['uz','Ouzbékistan','Som ouzbek'],
+    ['pk','Pakistan','Roupie pakistanaise'],
+    ['ps','Palestine','Dinar jordanien'],
+    ['qa','Qatar','Riyal qatarien'],
+    ['sg','Singapour','Dollar de Singapour'],
+    ['lk','Sri Lanka','Roupie srilankaise'],
+    ['sy','Syrie','Livre syrienne'],
+    ['tj','Tadjikistan','Somoni'],
+    ['th','Thaïlande','Baht'],
+    ['tl','Timor oriental','Dollar américain'],
+    ['tm','Turkménistan','Manat turkmène'],
+    ['tr','Turquie','Lire turque'],
+    ['vn','Vietnam','Dong'],
+    ['ye','Yémen','Rial yéménite'],
+  ]},
+  { id:'amerique-nord', name:'Amérique du Nord & Caraïbes', pays:[
+    ['ag','Antigua-et-Barbuda','Dollar des Caraïbes'],
+    ['bs','Bahamas','Dollar des Bahamas'],
+    ['bb','Barbade','Dollar de la Barbade'],
+    ['bz','Belize','Dollar du Belize'],
+    ['ca','Canada','Dollar canadien'],
+    ['cr','Costa Rica','Colón'],
+    ['cu','Cuba','Peso cubain'],
+    ['dm','Dominique','Dollar des Caraïbes'],
+    ['sv','El Salvador','Dollar américain'],
+    ['us','États-Unis','Dollar américain'],
+    ['gd','Grenade','Dollar des Caraïbes'],
+    ['gt','Guatemala','Quetzal'],
+    ['ht','Haïti','Gourde'],
+    ['hn','Honduras','Lempira'],
+    ['jm','Jamaïque','Dollar jamaïcain'],
+    ['mx','Mexique','Peso mexicain'],
+    ['ni','Nicaragua','Córdoba'],
+    ['pa','Panama','Balboa'],
+    ['do','République dominicaine','Peso dominicain'],
+    ['kn','Saint-Christophe-et-Niévès','Dollar des Caraïbes'],
+    ['lc','Sainte-Lucie','Dollar des Caraïbes'],
+    ['vc','Saint-Vincent-et-les-Grenadines','Dollar des Caraïbes'],
+    ['tt','Trinité-et-Tobago','Dollar de Trinité-et-Tobago'],
+  ]},
+  { id:'amerique-sud', name:'Amérique du Sud', pays:[
+    ['ar','Argentine','Peso argentin'],
+    ['bo','Bolivie','Boliviano'],
+    ['br','Brésil','Real'],
+    ['cl','Chili','Peso chilien'],
+    ['co','Colombie','Peso colombien'],
+    ['ec','Équateur','Dollar américain'],
+    ['gy','Guyana','Dollar du Guyana'],
+    ['py','Paraguay','Guaraní'],
+    ['pe','Pérou','Sol'],
+    ['sr','Suriname','Dollar du Suriname'],
+    ['uy','Uruguay','Peso uruguayen'],
+    ['ve','Venezuela','Bolívar'],
+  ]},
+  { id:'oceanie', name:'Océanie', pays:[
+    ['au','Australie','Dollar australien'],
+    ['fj','Fidji','Dollar fidjien'],
+    ['ki','Kiribati','Dollar australien'],
+    ['mh','Îles Marshall','Dollar américain'],
+    ['fm','Micronésie','Dollar américain'],
+    ['nr','Nauru','Dollar australien'],
+    ['nz','Nouvelle-Zélande','Dollar néo-zélandais'],
+    ['pw','Palaos','Dollar américain'],
+    ['pg','Papouasie-Nouvelle-Guinée','Kina'],
+    ['ws','Samoa','Tala'],
+    ['sb','Îles Salomon','Dollar des Îles Salomon'],
+    ['to','Tonga','Paʻanga'],
+    ['tv','Tuvalu','Dollar australien'],
+    ['vu','Vanuatu','Vatu'],
+  ]},
+];
+
+// ── ÉTAT LOCAL ───────────────────────────────────────────────────
+let state         = {}; // { "continentId__iso": { owned: bool } }
+let customAdded   = []; // [{ iso, name, continentId }]
+let customRemoved = []; // ["continentId__iso"]
+let currentFilter = 'all';
+let currentSearch = '';
+
+// ── FIREBASE : LECTURE ───────────────────────────────────────────
+async function loadFromFirebase() {
+  showLoading(true);
+  try {
+    const snap = await getDoc(doc(db, 'collection', 'data'));
+    if (snap.exists()) {
+      const d = snap.data();
+      state         = d.state         || {};
+      customAdded   = d.customAdded   || [];
+      customRemoved = d.customRemoved || [];
+    }
+  } catch(e) {
+    console.error('Erreur lecture Firebase:', e);
+  }
+  showLoading(false);
+  buildUI();
+}
+
+// ── FIREBASE : ÉCRITURE (propriétaire uniquement) ────────────────
+async function saveToFirebase() {
+  if (!isOwner) return;
+  showLoading(true);
+  try {
+    await setDoc(doc(db, 'collection', 'data'), {
+      state, customAdded, customRemoved,
+      updatedAt: new Date().toISOString()
+    });
+  } catch(e) {
+    console.error('Erreur écriture Firebase:', e);
+    alert('Erreur de sauvegarde. Vérifiez votre connexion.');
+  }
+  showLoading(false);
+}
+
+// ── LOADING BAR ──────────────────────────────────────────────────
+function showLoading(on) {
+  document.getElementById('loading-bar').classList.toggle('visible', on);
+}
+
+// ── MOT DE PASSE ─────────────────────────────────────────────────
+window.handleModeBadgeClick = function() {
+  if (isOwner) {
+    // Déconnexion
+    isOwner = false;
+    document.body.classList.remove('is-owner');
+    document.getElementById('mode-badge').textContent = '👁 Lecture seule';
+    document.getElementById('mode-badge').classList.remove('owner');
+    document.getElementById('add-country-wrap').classList.remove('owner-only');
+    buildUI();
+  } else {
+    openModal();
+  }
+};
+
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('visible');
+  document.getElementById('modal-password').value = '';
+  document.getElementById('modal-error').style.display = 'none';
+  setTimeout(() => document.getElementById('modal-password').focus(), 100);
+}
+
+window.closeModal = function() {
+  document.getElementById('modal-overlay').classList.remove('visible');
+};
+
+window.confirmPassword = function() {
+  const pwd = document.getElementById('modal-password').value;
+  if (pwd === OWNER_PASSWORD) {
+    isOwner = true;
+    document.body.classList.add('is-owner');
+    document.getElementById('mode-badge').textContent = '✏️ Mode édition';
+    document.getElementById('mode-badge').classList.add('owner');
+    document.getElementById('add-country-wrap').classList.add('owner-only');
+    closeModal();
+    buildUI();
+  } else {
+    document.getElementById('modal-error').style.display = 'block';
+    document.getElementById('modal-password').value = '';
+    document.getElementById('modal-password').focus();
+  }
+};
+
+// ── CONSTRUCTION UI ──────────────────────────────────────────────
+function buildContinentData() {
+  const data = defaultContinents.map(c => ({
+    id: c.id, name: c.name,
+    pays: c.pays.filter(([iso]) => !customRemoved.includes(`${c.id}__${iso}`)).map(p => [...p])
+  }));
+  customAdded.forEach(({iso, name, continentId}) => {
+    const cont = data.find(c => c.id === continentId);
+    if (cont && !cont.pays.find(p => p[0] === iso)) cont.pays.push([iso, name]);
+  });
+  data.forEach(c => c.pays.sort((a,b) => a[1].localeCompare(b[1], 'fr')));
+  return data;
+}
+
+function isOwned(key) { return !!(state[key] && state[key].owned); }
+
+function buildUI() {
+  const continents = buildContinentData();
+  const TOTAL = continents.reduce((s,c) => s + c.pays.length, 0);
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+
+  continents.forEach(c => {
+    if (c.pays.length === 0) return;
+    const section = document.createElement('section');
+    section.className = `continent-section ${c.id}`;
+
+    const ownedInContinent = c.pays.filter(([iso]) => isOwned(`${c.id}__${iso}`)).length;
+    const totalInContinent = c.pays.length;
+    const pct = totalInContinent > 0 ? Math.round(ownedInContinent / totalInContinent * 100) : 0;
+
+    section.innerHTML = `
+      <div class="continent-header">
+        <h2>${c.name}</h2>
+        <span class="continent-count">${ownedInContinent} / ${totalInContinent}</span>
+      </div>
+      <div class="continent-progress-wrap">
+        <div class="continent-progress-bg">
+          <div class="continent-progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>
+      <div class="grid" id="grid-${c.id}"></div>
+    `;
+    main.appendChild(section);
+
+    const grid = section.querySelector('.grid');
+
+   c.pays.forEach(([iso, name, currency]) => {
+      const key = `${c.id}__${iso}`;
+      const owned = isOwned(key);
+      const card = document.createElement('div');
+      card.className = 'country-card' + (owned ? ' owned' : '');
+      card.dataset.key = key;
+      card.dataset.name = name.toLowerCase();
+
+      // Case à cocher cliquable uniquement en mode propriétaire
+      const checkRow = isOwner
+        ? `<div class="card-check-row clickable" onclick="toggleOwned('${key}')">
+             <div class="checkbox-wrap"></div>
+             <span class="check-label">${owned ? 'Possédé' : 'Manquant'}</span>
+           </div>`
+        : `<div class="card-check-row">
+             <div class="checkbox-wrap"></div>
+             <span class="check-label">${owned ? 'Possédé' : 'Manquant'}</span>
+           </div>`;
+
+      card.innerHTML = `
+        <div class="badge-missing"></div>
+        <button class="btn-delete" title="Supprimer ce pays" onclick="removeCountry('${c.id}','${iso}',event)">✕</button>
+        <a href="https://fr.wikipedia.org/wiki/${encodeURIComponent(name)}" target="_blank" title="En savoir plus sur ${name}">
+          <img class="flag-img"
+               src="https://flagcdn.com/w80/${iso}.png"
+               srcset="https://flagcdn.com/w160/${iso}.png 2x"
+               alt="Drapeau ${name}" loading="lazy">
+        </a>
+        <span class="country-name">${name}</span>
+        <span class="country-currency">💴 ${currency}</span>
+        ${checkRow}
+      `;
+      grid.appendChild(card);
+    });
+  });
+
+  updateStats(TOTAL);
+  applyFilter();
+}
+
+// ── TOGGLE POSSESSION ────────────────────────────────────────────
+window.toggleOwned = function(key) {
+  if (!isOwner) return;
+  if (!state[key]) state[key] = {};
+  state[key].owned = !state[key].owned;
+
+  const card = document.querySelector(`[data-key="${key}"]`);
+  if (card) {
+    const owned = state[key].owned;
+    card.classList.toggle('owned', owned);
+    card.querySelector('.check-label').textContent = owned ? 'Possédé' : 'Manquant';
+  }
+
+  // Mise à jour compteurs continent
+  const continents = buildContinentData();
+  continents.forEach(c => {
+    const fill = document.querySelector(`#grid-${c.id}`)?.closest('.continent-section')?.querySelector('.continent-progress-fill');
+    const count = document.querySelector(`#grid-${c.id}`)?.closest('.continent-section')?.querySelector('.continent-count');
+    if (!fill || !count) return;
+    const owned = c.pays.filter(([iso]) => isOwned(`${c.id}__${iso}`)).length;
+    const pct = c.pays.length > 0 ? Math.round(owned / c.pays.length * 100) : 0;
+    fill.style.width = pct + '%';
+    count.textContent = `${owned} / ${c.pays.length}`;
+  });
+
+  updateStats(continents.reduce((s,c) => s + c.pays.length, 0));
+  applyFilter();
+  saveToFirebase();
+};
+
+// ── STATS ────────────────────────────────────────────────────────
+function updateStats(total) {
+  const owned = Object.values(state).filter(e => e.owned).length;
+  document.getElementById('owned-count').textContent = owned;
+  document.getElementById('missing-count').textContent = total - owned;
+  document.getElementById('total-count').textContent = total;
+  document.getElementById('percent').textContent = total > 0 ? Math.round(owned / total * 100) + '%' : '0%';
+  document.getElementById('progress-fill').style.width = total > 0 ? (owned / total * 100) + '%' : '0%';
+}
+
+// ── AJOUT PAYS ───────────────────────────────────────────────────
+window.addCountry = function() {
+  if (!isOwner) return;
+  const name = document.getElementById('add-name').value.trim();
+  const iso  = document.getElementById('add-iso').value.trim().toLowerCase();
+  const continentId = document.getElementById('add-continent').value;
+
+  if (!name || !iso || iso.length !== 2) {
+    alert('Merci de remplir le nom et un code ISO valide (2 lettres).');
+    return;
+  }
+  const continents = buildContinentData();
+  const cont = continents.find(c => c.id === continentId);
+  if (cont && cont.pays.find(p => p[0] === iso)) {
+    alert('Ce pays existe déjà dans cette liste.');
+    return;
+  }
+  customRemoved = customRemoved.filter(k => k !== `${continentId}__${iso}`);
+  customAdded.push({ iso, name, continentId });
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-iso').value  = '';
+  saveToFirebase();
+  buildUI();
+};
+
+// ── SUPPRESSION PAYS ─────────────────────────────────────────────
+window.removeCountry = function(continentId, iso, event) {
+  if (!isOwner) return;
+  event.stopPropagation();
+  const key = `${continentId}__${iso}`;
+  const wasCustom = customAdded.findIndex(p => p.iso === iso && p.continentId === continentId);
+  if (wasCustom >= 0) {
+    customAdded.splice(wasCustom, 1);
+  } else {
+    if (!customRemoved.includes(key)) customRemoved.push(key);
+  }
+  delete state[key];
+  saveToFirebase();
+  buildUI();
+};
+
+// ── FILTRES ──────────────────────────────────────────────────────
+window.setFilter = function(f) {
+  currentFilter = f;
+  ['all','owned','missing'].forEach(id => {
+    document.getElementById('btn-' + id).classList.toggle('active', id === f);
+  });
+  applyFilter();
+};
+
+function applyFilter() {
+  document.querySelectorAll('.country-card').forEach(card => {
+    const owned = isOwned(card.dataset.key);
+    const nameMatch = !currentSearch || card.dataset.name.includes(currentSearch);
+    const filterMatch = currentFilter === 'all'
+      || (currentFilter === 'owned' && owned)
+      || (currentFilter === 'missing' && !owned);
+    card.classList.toggle('hidden', !nameMatch || !filterMatch);
+  });
+  document.querySelectorAll('.continent-section').forEach(s => {
+    s.classList.toggle('hidden', s.querySelectorAll('.country-card:not(.hidden)').length === 0);
+  });
+}
+
+window.filterCountries = function(q) {
+  currentSearch = q.toLowerCase().trim();
+  applyFilter();
+};
+
+// ── RÉINITIALISATION ─────────────────────────────────────────────
+window.resetAll = function() {
+  if (!isOwner) { alert('Mode lecture seule — connectez-vous en tant que propriétaire.'); return; }
+  if (!confirm('Réinitialiser toute la collection ? Les coches seront effacées.')) return;
+  state = {};
+  saveToFirebase();
+  buildUI();
+};
+
+// ── DÉMARRAGE ────────────────────────────────────────────────────
+loadFromFirebase();
+</script>
+</body>
+</html>
